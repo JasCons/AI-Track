@@ -141,7 +141,7 @@ This project can build a Flutter web bundle and host it either on GitHub Pages o
 Placeholders / Live link
 - After the first successful deployment you can set a canonical link for your hosted app. Add the live URL here after you confirm it:
 
-Live site: UPDATED_LINK  (Link for the live domain hosting of web/mobile apps)
+Live site: https://jascons.github.io/AI-Track/  (Link for the live domain hosting of web/mobile apps)
 
 To configure a custom domain on Firebase Hosting follow the Firebase console instructions (Ownership verification + DNS records). For GitHub Pages you can configure a custom domain in the repository settings and point a CNAME/A record to GitHub Pages IPs.
 
