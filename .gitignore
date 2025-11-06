@@ -49,4 +49,10 @@ key.properties
 *.jks
 *.keystore
 
+# Heap dumps and large files
+*.hprof
+java_pid*.hprof
+hs_err_pid*.log
+replay_pid*.log
+
 .fake
