@@ -1,38 +1,137 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
-  <base href="/AI-Track/">
-
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="AI-Track - Smart Transit Tracking System">
-
-  <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="AI-Track">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
-
   <title>AI-Track - Smart Transit Tracking</title>
-  <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      text-align: center;
+      max-width: 800px;
+      padding: 40px 20px;
+    }
+    .logo {
+      font-size: 4rem;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 3rem;
+      margin: 20px 0;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .subtitle {
+      font-size: 1.5rem;
+      margin-bottom: 40px;
+      opacity: 0.9;
+    }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      margin: 40px 0;
+    }
+    .feature {
+      background: rgba(255,255,255,0.1);
+      padding: 30px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+    }
+    .feature h3 {
+      margin: 15px 0;
+      font-size: 1.3rem;
+    }
+    .feature p {
+      opacity: 0.8;
+      line-height: 1.6;
+    }
+    .cta {
+      margin-top: 40px;
+      padding: 20px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .github-link {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 15px 30px;
+      background: #333;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    .github-link:hover {
+      background: #555;
+    }
+    @media (max-width: 768px) {
+      h1 { font-size: 2rem; }
+      .subtitle { font-size: 1.2rem; }
+      .features { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+  <div class="container">
+    <div class="logo">🚌</div>
+    <h1>AI-Track</h1>
+    <p class="subtitle">Smart Transit Tracking System</p>
+    
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">📍</div>
+        <h3>Real-time GPS Tracking</h3>
+        <p>Track vehicles in real-time with precise location data and route monitoring.</p>
+      </div>
+      
+      <div class="feature">
+        <div class="feature-icon">🛣️</div>
+        <h3>Route Optimization</h3>
+        <p>AI-powered route planning and optimization for efficient transit operations.</p>
+      </div>
+      
+      <div class="feature">
+        <div class="feature-icon">🔔</div>
+        <h3>Smart Notifications</h3>
+        <p>Arrival predictions, delay alerts, and real-time passenger notifications.</p>
+      </div>
+      
+      <div class="feature">
+        <div class="feature-icon">📊</div>
+        <h3>Analytics Dashboard</h3>
+        <p>Comprehensive performance insights, reports, and operational analytics.</p>
+      </div>
+    </div>
+    
+    <div class="cta">
+      <h3>🚀 Full Mobile Application Available</h3>
+      <p>This is a web demo of the AI-Track system. The complete mobile application includes Firebase authentication, real-time tracking, route management, and advanced analytics.</p>
+      <a href="https://github.com/JasCons/AI-Track" class="github-link" target="_blank">
+        📱 View Full Project on GitHub
+      </a>
+    </div>
+  </div>
 </body>
 </html>
