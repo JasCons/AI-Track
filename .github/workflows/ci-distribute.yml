@@ -1,0 +1,103 @@
+name: CI Build and Distribute
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      FLUTTER_CHANNEL: stable
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Decode keystore (from secret) and write key.properties
+        if: ${{ secrets.AI_TRACK_KEYSTORE_BASE64 }} != ''
+        run: |
+          echo "Creating keystore and key.properties"
+          mkdir -p android/keystore
+          echo "$AI_TRACK_KEYSTORE_BASE64" | base64 --decode > android/keystore/ai_track.jks
+          cat > android/key.properties <<EOF
+          storePassword=${{ secrets.AI_TRACK_KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.AI_TRACK_KEY_PASSWORD }}
+          keyAlias=${{ secrets.AI_TRACK_KEY_ALIAS }}
+          storeFile=${{ github.workspace }}/android/keystore/ai_track.jks
+          EOF
+
+      - name: Build app bundle
+        run: flutter build appbundle --release -t lib/main.dart
+
+      - name: Upload artifact (AAB)
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release.aab
+          path: build/app/outputs/bundle/release/app-release.aab
+
+  publish_to_github:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-release.aab
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.run_number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload AAB to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/app/outputs/bundle/release/app-release.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish_to_firebase:
+    needs: build
+    runs-on: ubuntu-latest
+    if: secrets.FIREBASE_TOKEN != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-release.aab
+
+      - name: Install Firebase CLI
+        run: curl -sL https://firebase.tools | bash
+
+      - name: Distribute to Firebase App Distribution
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          firebase appdistribution:distribute build/app/outputs/bundle/release/app-release.aab \
+            --app ${{ secrets.FIREBASE_APP_ID }} \
+            --groups "internal-testers" \
+            --release-notes "Automated build $GITHUB_RUN_NUMBER"

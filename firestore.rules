@@ -1,0 +1,101 @@
+// Basic Firestore rules for AI-Track
+// - Allow authenticated users to read transits
+// - Operators can create transits where 'operatorUid' == request.auth.uid
+// - Prevent public writes to other operator documents
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Transit collection
+    match /transit/{docId} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'operator' &&
+        (request.resource.data.operatorUid == null || request.resource.data.operatorUid == request.auth.uid);
+
+      allow update, delete: if request.auth != null && resource.data.operatorUid == request.auth.uid;
+    }
+
+    // Reports collection: allow authenticated users to create reports
+    // and allow the owner or admins to read them. Disallow client-side
+    // updates/deletes by default (admins may modify via the server).
+    match /reports/{reportId} {
+      // Creation allowed for authenticated users; reporterUid must match auth uid.
+      allow create: if request.auth != null
+        && request.resource.data.reporterUid == request.auth.uid
+        && request.resource.data.keys().hasAll(['title', 'description', 'createdAt']) ;
+
+      // Allow the owner to read their report, or admins to read any.
+      allow read: if request.auth != null && (
+        resource.data.reporterUid == request.auth.uid ||
+        request.auth.token.admin == true
+      );
+
+      // Only admins may update/delete reports via server-side tools.
+      allow update, delete: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Users collection: allow users to read/write their own profile
+    match /users/{userId} {
+      // DEV MODE: allow any authenticated user to read all user documents.
+      // WARNING: This exposes emails and passwords stored in Firestore to any
+      // authenticated client. Use only for local development/testing. For
+      // production, restrict reads to the owner or to admin custom claims.
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false; // disallow deletes by client
+    }
+
+    // Operators collection: allow operators to create/update their own docs
+    // Dev note: this is a permissive but reasonable model for operator-managed
+    // accounts. In production consider using custom claims for admin roles and
+    // stricter validation of fields (avoid storing plaintext passwords).
+    match /operators/{operatorId} {
+      allow read: if request.auth != null;
+
+      // Allow creation if authenticated and the operatorUid in the request
+      // (if provided) matches the authenticated user, or the user holds an
+      // admin custom claim. This lets operators create their own record and
+      // admins create operator records.
+      allow create: if request.auth != null && (
+        request.resource.data.operatorUid == null ||
+        request.resource.data.operatorUid == request.auth.uid ||
+        request.auth.token.admin == true
+      );
+
+      // Allow update/delete only by the operator themselves or an admin.
+      allow update, delete: if request.auth != null && (
+        resource.data.operatorUid == request.auth.uid ||
+        request.auth.token.admin == true
+      );
+    }
+
+    // Routes collection: stores predefined routes for transit vehicles.
+    // For local development we allow public reads so the tracker UI can
+    // list routes without requiring the client to sign-in. Creation still
+    // requires authentication. DO NOT ship this to production without
+    // tightening the rules (set read -> request.auth != null).
+    match /routes/{routeId} {
+      // DEV: allow anyone to read route documents (helpful for testing).
+      allow read: if true;
+
+      // Allow creation by operators only.
+      allow create: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'operator';
+
+      // Only allow update/delete to operators or admins.
+      allow update, delete: if request.auth != null && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'operator' ||
+        request.auth.token.admin == true
+      );
+    }
+
+    // Vehicles collection: stores real-time vehicle positions
+    match /vehicles/{vehicleId} {
+      allow read: if true; // Public read for tracking
+      allow write: if request.auth != null; // Authenticated write for simulation
+    }
+  }
+}

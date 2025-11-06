@@ -1,0 +1,102 @@
+﻿name: Build & Deploy Flutter Web
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build_web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Flutter web
+        run: flutter build web --release -t lib/main.dart
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
+          # set a predictable branch name for GitHub Pages
+          publish_branch: gh-pages
+
+  publish_to_firebase:
+    needs: build_web
+    runs-on: ubuntu-latest
+    if: secrets.FIREBASE_TOKEN != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Firebase CLI
+        run: curl -sL https://firebase.tools | bash
+
+      - name: Deploy to Firebase Hosting
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          # Ensure the hosting config exists before deploying
+          if [ ! -f firebase.json ]; then
+            cat > firebase.json <<'JSON'
+{
+  "hosting": {
+    "public": "build/web",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+  }
+}
+JSON
+          fi
+          firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT_ID }}
+
+      - name: Update DEPLOYMENT.md with live hosting links
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -e
+          OWNER_REPO="$GITHUB_REPOSITORY"
+          OWNER="${OWNER_REPO%%/*}"
+          REPO="${OWNER_REPO##*/}"
+          FIREBASE_URL="https://${FIREBASE_PROJECT_ID}.web.app"
+          GHPAGES_URL="https://${OWNER}.github.io/${REPO}"
+          echo "Updating DEPLOYMENT.md with Firebase: $FIREBASE_URL and GitHub Pages: $GHPAGES_URL"
+          # Replace the placeholder line starting with 'Live site:'
+          if grep -q "Live site:" DEPLOYMENT.md; then
+            sed -i "s|Live site: .*|Live site: Firebase: ${FIREBASE_URL} | GitHub Pages: ${GHPAGES_URL}|" DEPLOYMENT.md
+          else
+            echo "\nLive site: Firebase: ${FIREBASE_URL} | GitHub Pages: ${GHPAGES_URL}" >> DEPLOYMENT.md
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add DEPLOYMENT.md
+          if git commit -m "chore(ci): update DEPLOYMENT.md with live hosting links"; then
+            BRANCH="ci/update-deployment-links-${{ github.run_id }}"
+            git checkout -b "$BRANCH"
+            # Push using the GITHUB_TOKEN to authenticate
+            git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+            git push --set-upstream origin "$BRANCH"
+            # Create a Pull Request using the GitHub REST API
+            PR_BODY=$(jq -n --arg f "$FIREBASE_URL" --arg g "$GHPAGES_URL" '{title: "chore(ci): update DEPLOYMENT.md with live hosting links", head: env.BRANCH, base: "main", body: "This PR updates DEPLOYMENT.md with live hosting links:\n\nFirebase: " + $f + "\nGitHub Pages: " + $g}')
+            # Use GitHub API to create PR (GITHUB_TOKEN provided in secrets)
+            curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github+json" \
+              -d "$PR_BODY" "https://api.github.com/repos/${{ github.repository }}/pulls" || true
+          else
+            echo "No changes to commit"
+          fi
+

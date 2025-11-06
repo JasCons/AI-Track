@@ -1,0 +1,16 @@
+name: ai_track_server
+description: Simple shelf server for AI-Track demo
+
+environment:
+  sdk: '>=2.18.0 <4.0.0'
+
+dependencies:
+  shelf: ^1.4.2
+  shelf_router: ^1.0.2
+  http: ^0.13.6
+  cloud_firestore: ^4.0.0
+  firebase_core: ^4.2.1
+  firebase_messaging: ^16.0.4
+
+executables:
+  server: bin/server.dart
