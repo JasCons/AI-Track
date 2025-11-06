@@ -1,11 +1,11 @@
 {
-    "name": "helloworld",
-    "short_name": "helloworld",
+    "name": "AI-Track - Smart Transit Tracking",
+    "short_name": "AI-Track",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Smart transit tracking system with real-time updates and route optimization.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
