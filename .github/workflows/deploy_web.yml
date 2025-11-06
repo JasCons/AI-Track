@@ -25,11 +25,13 @@ jobs:
           echo "$HOME/flutter/bin" >> $GITHUB_PATH
           flutter --version
 
-      - name: Get dependencies
-        run: flutter pub get
+      - name: Setup web-only dependencies
+        run: |
+          cp pubspec_web.yaml pubspec.yaml
+          flutter pub get
 
       - name: Build Flutter web
-        run: flutter build web --release -t lib/main.dart
+        run: flutter build web --release -t lib/main_web.dart --base-href "/AI-Track/"
 
       - name: Publish to gh-pages branch (no Actions required)
         env:
