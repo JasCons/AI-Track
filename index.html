@@ -1,34 +1,492 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI-TRACK: Transit Tracker</title>
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Roboto', Arial, sans-serif; background-color: #98FB98; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-.container { width: 100%; max-width: 400px; padding: 24px; text-align: center; }
-.logo { width: 120px; height: 120px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.logo i { font-size: 64px; color: #4CAF50; }
-h1 { font-size: 28px; font-weight: bold; color: rgba(0,0,0,0.87); margin-bottom: 12px; }
-p { font-size: 16px; color: rgba(0,0,0,0.54); margin-bottom: 32px; }
-.btn { width: 220px; padding: 16px; border: none; border-radius: 30px; font-size: 18px; font-weight: 500; cursor: pointer; margin: 8px auto; display: block; text-decoration: none; text-align: center; transition: all 0.2s; }
-.btn-primary { background: #4CAF50; color: white; }
-.btn-primary:hover { background: #45a049; transform: translateY(-1px); }
-.btn-outline { background: transparent; color: #4CAF50; border: 2px solid #4CAF50; }
-.btn-outline:hover { background: rgba(76,175,80,0.1); }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-TRACK: Transit Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Roboto', sans-serif; background-color: #98FB98; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .container { width: 100%; max-width: 600px; padding: 24px; text-align: center; }
+        .logo-container { width: 120px; height: 120px; background-color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .logo-icon { font-size: 64px; color: #4CAF50; }
+        .title { font-size: 28px; font-weight: bold; color: rgba(0,0,0,0.87); margin-bottom: 12px; }
+        .subtitle { font-size: 16px; color: rgba(0,0,0,0.54); margin-bottom: 32px; }
+        .button { width: 220px; padding: 16px; border: none; border-radius: 30px; font-size: 18px; font-weight: 500; cursor: pointer; margin-bottom: 16px; transition: all 0.2s ease; display: block; margin-left: auto; margin-right: auto; text-decoration: none; text-align: center; }
+        .button-primary { background-color: #4CAF50; color: white; }
+        .button-primary:hover { background-color: #45a049; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3); }
+        .button-secondary { background-color: white; color: #4CAF50; border: 2px solid #4CAF50; }
+        .button-outline { background-color: transparent; color: #4CAF50; border: 2px solid #4CAF50; }
+        .button-outline:hover { background-color: rgba(76, 175, 80, 0.1); }
+        .page { display: none; }
+        .page.active { display: block; }
+        .form-group { margin-bottom: 16px; text-align: left; }
+        .input-field { width: 100%; padding: 16px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; background-color: white; }
+        .input-with-icon { position: relative; }
+        .input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #666; font-size: 20px; }
+        .input-field-with-icon { padding-left: 48px; }
+        .password-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #666; font-size: 20px; }
+        .error-message { color: #f44336; font-size: 14px; margin-bottom: 8px; text-align: center; }
+        .back-button { position: absolute; top: 24px; left: 24px; background: white; border: none; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .menu-header { background-color: white; padding: 32px 16px; border-radius: 0 0 32px 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); margin-bottom: 24px; }
+        .menu-avatar { width: 72px; height: 72px; background-color: #98FB98; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+        .menu-title { font-size: 22px; font-weight: bold; color: rgba(0,0,0,0.87); margin-bottom: 4px; }
+        .menu-role { font-size: 16px; color: rgba(0,0,0,0.54); }
+        .menu-item { background-color: white; margin: 8px 16px; border-radius: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s ease; cursor: pointer; }
+        .menu-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .menu-item-content { display: flex; align-items: center; padding: 16px; }
+        .menu-item-icon { color: #4CAF50; font-size: 28px; margin-right: 16px; }
+        .menu-item-text { font-size: 18px; font-weight: 500; flex: 1; }
+        .menu-item-arrow { color: rgba(0,0,0,0.26); font-size: 18px; }
+        .card { background: white; border-radius: 12px; padding: 20px; margin: 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .card-title { font-size: 20px; font-weight: bold; margin-bottom: 16px; color: rgba(0,0,0,0.87); }
+        .select-field { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: white; font-size: 16px; }
+        .map-placeholder { width: 100%; height: 300px; background: #f5f5f5; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #666; font-size: 16px; margin: 16px 0; }
+        .status-chip { display: inline-block; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500; }
+        .status-live { background: #e8f5e8; color: #2e7d32; }
+        .eta-display { background: #e3f2fd; padding: 16px; border-radius: 8px; margin: 16px 0; display: flex; align-items: center; }
+        .eta-icon { color: #1976d2; margin-right: 8px; }
+        .button-row { display: flex; gap: 8px; margin-top: 16px; }
+        .button-row .button { flex: 1; margin: 0; }
+        .textarea { min-height: 100px; resize: vertical; }
+        @media (max-width: 480px) { .container { padding: 16px; } .button { width: 100%; } }
+    </style>
 </head>
 <body>
-<div class="container">
-<div class="logo"><i class="material-icons">directions_bus</i></div>
-<h1>AI-TRACK: Transit Tracker</h1>
-<p>Welcome! Track and manage your transit with ease.</p>
-<button class="btn btn-primary" onclick="alert('Login - Flutter App Style!')">Log In</button>
-<button class="btn btn-outline" onclick="alert('Sign Up - Flutter App Style!')">Sign Up</button>
-<button class="btn btn-outline" onclick="alert('About - Flutter App Style!')">About Us</button>
-<a href="https://github.com/JasCons/AI-Track" class="btn btn-outline">GitHub</a>
-</div>
+    <!-- Home Page -->
+    <div class="container page active" id="homePage">
+        <div class="logo-container">
+            <span class="material-icons logo-icon">directions_bus</span>
+        </div>
+        <h1 class="title">AI-TRACK: Transit Tracker</h1>
+        <p class="subtitle">Welcome! Track and manage your transit with ease.</p>
+        <button class="button button-primary" onclick="showLoginSelector()">Log In</button>
+        <button class="button button-secondary" onclick="showSignUp()">Sign Up</button>
+        <button class="button button-outline" onclick="showAbout()">About Us</button>
+        <button class="button button-outline" onclick="showContact()">Contact Us</button>
+    </div>
+
+    <!-- Login Selector -->
+    <div class="container page" id="loginSelector">
+        <button class="back-button" onclick="showHome()">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        <div class="logo-container">
+            <span class="material-icons logo-icon">lock</span>
+        </div>
+        <h1 class="title">Select Login Type</h1>
+        <p class="subtitle">Choose your account type</p>
+        <button class="button button-primary" onclick="showPassengerLogin()">Passenger Login</button>
+        <button class="button" style="background-color: #2196F3; color: white;" onclick="showOperatorLogin()">Operator Login</button>
+    </div>
+
+    <!-- Passenger Login -->
+    <div class="container page" id="passengerLogin">
+        <button class="back-button" onclick="showLoginSelector()">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        <div class="logo-container">
+            <span class="material-icons logo-icon">person</span>
+        </div>
+        <h1 class="title">Passenger Login</h1>
+        <p class="subtitle">Enter your passenger credentials</p>
+        <form onsubmit="handleLogin(event, 'passenger')">
+            <div class="form-group">
+                <div class="input-with-icon">
+                    <span class="material-icons input-icon">person</span>
+                    <input type="email" class="input-field input-field-with-icon" placeholder="Passenger Email" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-with-icon">
+                    <span class="material-icons input-icon">lock_outline</span>
+                    <input type="password" class="input-field input-field-with-icon" placeholder="Password" id="passengerPassword" required>
+                    <button type="button" class="password-toggle" onclick="togglePassword('passengerPassword')">
+                        <span class="material-icons">visibility_off</span>
+                    </button>
+                </div>
+            </div>
+            <div class="error-message" id="passengerError" style="display: none;"></div>
+            <button type="submit" class="button button-primary">Login</button>
+        </form>
+    </div>
+
+    <!-- Operator Login -->
+    <div class="container page" id="operatorLogin">
+        <button class="back-button" onclick="showLoginSelector()">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        <div class="logo-container">
+            <span class="material-icons logo-icon">engineering</span>
+        </div>
+        <h1 class="title">Operator Login</h1>
+        <p class="subtitle">Enter your operator credentials</p>
+        <form onsubmit="handleLogin(event, 'operator')">
+            <div class="form-group">
+                <div class="input-with-icon">
+                    <span class="material-icons input-icon">person</span>
+                    <input type="email" class="input-field input-field-with-icon" placeholder="Operator Email" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-with-icon">
+                    <span class="material-icons input-icon">lock_outline</span>
+                    <input type="password" class="input-field input-field-with-icon" placeholder="Password" id="operatorPassword" required>
+                    <button type="button" class="password-toggle" onclick="togglePassword('operatorPassword')">
+                        <span class="material-icons">visibility_off</span>
+                    </button>
+                </div>
+            </div>
+            <div class="error-message" id="operatorError" style="display: none;"></div>
+            <button type="submit" class="button button-primary">Login</button>
+        </form>
+    </div>
+
+    <!-- Menu Page -->
+    <div class="container page" id="menuPage">
+        <div class="menu-header">
+            <div class="menu-avatar">
+                <span class="material-icons" style="font-size: 56px; color: #4CAF50;">account_circle</span>
+            </div>
+            <div class="menu-title">AI-TRACK</div>
+            <div class="menu-role" id="userRole">Role: Loading...</div>
+        </div>
+        <div class="menu-item" onclick="showTransitTrack()">
+            <div class="menu-item-content">
+                <span class="material-icons menu-item-icon">map</span>
+                <span class="menu-item-text">Transit Track</span>
+                <span class="material-icons menu-item-arrow">arrow_forward_ios</span>
+            </div>
+        </div>
+        <div class="menu-item" onclick="showTransitRegister()">
+            <div class="menu-item-content">
+                <span class="material-icons menu-item-icon">app_registration</span>
+                <span class="menu-item-text">Transit Register</span>
+                <span class="material-icons menu-item-arrow">arrow_forward_ios</span>
+            </div>
+        </div>
+        <div class="menu-item" onclick="showReport()">
+            <div class="menu-item-content">
+                <span class="material-icons menu-item-icon">report</span>
+                <span class="menu-item-text">Report</span>
+                <span class="material-icons menu-item-arrow">arrow_forward_ios</span>
+            </div>
+        </div>
+        <div class="menu-item" onclick="logout()">
+            <div class="menu-item-content">
+                <span class="material-icons menu-item-icon">logout</span>
+                <span class="menu-item-text">Log Out</span>
+                <span class="material-icons menu-item-arrow">arrow_forward_ios</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transit Track Page -->
+    <div class="container page" id="transitTrackPage">
+        <button class="back-button" onclick="showMenu()">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        <h1 class="title">Transit Track</h1>
+        <div class="card">
+            <div class="card-title">Select Transit</div>
+            <div class="form-group">
+                <select class="select-field" id="transitType" onchange="updateVehicles()">
+                    <option value="rail">Rail</option>
+                    <option value="road">Road</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <select class="select-field" id="vehicleSelect">
+                    <option value="lrt-1">LRT-1</option>
+                    <option value="lrt-2">LRT-2</option>
+                    <option value="mrt-3">MRT-3</option>
+                </select>
+            </div>
+            <button class="button button-primary" onclick="refreshRoutes()">Refresh Routes</button>
+        </div>
+        <div class="card">
+            <div class="card-title">Select Route</div>
+            <div class="form-group">
+                <select class="select-field" id="routeSelect" onchange="selectRoute()">
+                    <option value="">Select a route...</option>
+                    <option value="route1">Baclaran - Roosevelt</option>
+                    <option value="route2">Recto - Santolan</option>
+                    <option value="route3">North Avenue - Taft</option>
+                </select>
+            </div>
+        </div>
+        <div class="card" id="routeDetails" style="display: none;">
+            <div class="card-title">Route Details <span class="status-chip status-live" id="liveStatus" style="display: none;">Live</span></div>
+            <p><strong>Vehicle:</strong> <span id="selectedVehicle">LRT-1</span></p>
+            <p><strong>Route ID:</strong> <span id="selectedRouteId">-</span></p>
+            <div class="eta-display" id="etaDisplay" style="display: none;">
+                <span class="material-icons eta-icon">access_time</span>
+                <span>Estimated arrival: <span id="etaMinutes">5</span> min</span>
+            </div>
+            <div class="map-placeholder">
+                <span class="material-icons" style="font-size: 48px; margin-right: 16px;">map</span>
+                Interactive Map View<br><small>Real-time vehicle tracking</small>
+            </div>
+            <div class="button-row">
+                <button class="button button-primary" onclick="startTracking()" id="startBtn">Start Live Track</button>
+                <button class="button" style="background: #f44336; color: white;" onclick="stopTracking()" id="stopBtn" disabled>Stop</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transit Register Page -->
+    <div class="container page" id="transitRegisterPage">
+        <button class="back-button" onclick="showMenu()">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        <h1 class="title">Transit Register</h1>
+        <div class="card">
+            <div class="card-title">Register Transit</div>
+            <p style="color: #666; margin-bottom: 16px;">Route names like "Cubao - Alabang" will auto-generate map routes</p>
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <input type="text" class="input-field" placeholder="Transit Name" id="transitName" required>
+                </div>
+                <div class="form-group">
+                    <select class="select-field" id="transitTypeSelect" required>
+                        <option value="">Select Transit Type</option>
+                        <option value="Bus">Bus</option>
+                        <option value="Jeepney">Jeepney</option>
+                        <option value="Taxi">Taxi</option>
+                        <option value="Tricycle">Tricycle</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="text" class="input-field" placeholder="License ID" id="licenseId" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" class="input-field" placeholder="Plate Number" id="plateNumber" required>
+                </div>
+                <div class="form-group">
+                    <textarea class="input-field textarea" placeholder="Coordinates (auto-generated if empty)" id="coordinates"></textarea>
+                    <small style="color: #666;">Leave empty to auto-generate from route name</small>
+                </div>
+                <div class="error-message" id="registerError" style="display: none;"></div>
+                <button type="submit" class="button button-primary" id="registerBtn">Register Transit</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Report Page -->
+    <div class="container page" id="reportPage">
+        <button class="back-button" onclick="showMenu()">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        <h1 class="title">Submit Report</h1>
+        <div class="card">
+            <div class="card-title">Report an Issue</div>
+            <form onsubmit="handleReport(event)">
+                <div class="form-group">
+                    <input type="text" class="input-field" placeholder="Report Title" id="reportTitle" required>
+                </div>
+                <div class="form-group">
+                    <select class="select-field" id="reportType" required>
+                        <option value="">Select Report Type</option>
+                        <option value="Route Change">Route Change</option>
+                        <option value="Traffic Issue">Traffic Issue</option>
+                        <option value="Vehicle Issue">Vehicle Issue</option>
+                        <option value="Safety Concern">Safety Concern</option>
+                        <option value="Service Delay">Service Delay</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="text" class="input-field" placeholder="Location" id="reportLocation" required>
+                </div>
+                <div class="form-group">
+                    <textarea class="input-field textarea" placeholder="Provide details about the issue" id="reportDescription" required></textarea>
+                </div>
+                <div class="error-message" id="reportError" style="display: none;"></div>
+                <button type="submit" class="button button-primary" id="reportBtn">Submit Report</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let isTracking = false;
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        function showHome() { showPage('homePage'); }
+        function showLoginSelector() { showPage('loginSelector'); }
+        function showPassengerLogin() { showPage('passengerLogin'); }
+        function showOperatorLogin() { showPage('operatorLogin'); }
+        function showMenu() { showPage('menuPage'); }
+        function showTransitTrack() { showPage('transitTrackPage'); }
+        function showTransitRegister() { showPage('transitRegisterPage'); }
+        function showReport() { showPage('reportPage'); }
+
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const button = input.nextElementSibling;
+            const icon = button.querySelector('.material-icons');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = 'visibility';
+            } else {
+                input.type = 'password';
+                icon.textContent = 'visibility_off';
+            }
+        }
+
+        function handleLogin(event, userType) {
+            event.preventDefault();
+            const form = event.target;
+            const email = form.querySelector('input[type="email"]').value;
+            const password = form.querySelector('input[type="password"]').value;
+            
+            const validCredentials = {
+                'passenger@example.com': 'pass123',
+                'operator@example.com': 'op123'
+            };
+            
+            const errorElement = document.getElementById(`${userType}Error`);
+            
+            if (validCredentials[email] === password) {
+                currentUser = { email, type: userType };
+                document.getElementById('userRole').textContent = `Role: ${userType}`;
+                showMenu();
+            } else {
+                errorElement.textContent = 'Invalid credentials. Try passenger@example.com/pass123 or operator@example.com/op123';
+                errorElement.style.display = 'block';
+            }
+        }
+
+        function updateVehicles() {
+            const type = document.getElementById('transitType').value;
+            const vehicleSelect = document.getElementById('vehicleSelect');
+            vehicleSelect.innerHTML = '';
+            
+            if (type === 'rail') {
+                ['LRT-1', 'LRT-2', 'MRT-3'].forEach(v => {
+                    const option = document.createElement('option');
+                    option.value = v.toLowerCase();
+                    option.textContent = v;
+                    vehicleSelect.appendChild(option);
+                });
+            } else {
+                ['Bus', 'Jeep', 'UV Express'].forEach(v => {
+                    const option = document.createElement('option');
+                    option.value = v.toLowerCase();
+                    option.textContent = v;
+                    vehicleSelect.appendChild(option);
+                });
+            }
+        }
+
+        function refreshRoutes() {
+            alert('Routes refreshed! Found 3 active routes for selected vehicle.');
+        }
+
+        function selectRoute() {
+            const routeSelect = document.getElementById('routeSelect');
+            const routeDetails = document.getElementById('routeDetails');
+            const selectedRouteId = document.getElementById('selectedRouteId');
+            
+            if (routeSelect.value) {
+                routeDetails.style.display = 'block';
+                selectedRouteId.textContent = routeSelect.value;
+            } else {
+                routeDetails.style.display = 'none';
+            }
+        }
+
+        function startTracking() {
+            isTracking = true;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('liveStatus').style.display = 'inline-block';
+            document.getElementById('etaDisplay').style.display = 'flex';
+            
+            // Simulate real-time updates
+            let eta = 8;
+            const interval = setInterval(() => {
+                if (!isTracking) {
+                    clearInterval(interval);
+                    return;
+                }
+                eta = Math.max(1, eta - 1);
+                document.getElementById('etaMinutes').textContent = eta;
+                if (eta === 1) {
+                    clearInterval(interval);
+                    alert('Vehicle arriving now!');
+                    stopTracking();
+                }
+            }, 3000);
+            
+            alert('Live tracking started! Vehicle location updating in real-time.');
+        }
+
+        function stopTracking() {
+            isTracking = false;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('liveStatus').style.display = 'none';
+            document.getElementById('etaDisplay').style.display = 'none';
+            alert('Live tracking stopped.');
+        }
+
+        function handleRegister(event) {
+            event.preventDefault();
+            const form = event.target;
+            const name = form.querySelector('#transitName').value;
+            const type = form.querySelector('#transitTypeSelect').value;
+            const license = form.querySelector('#licenseId').value;
+            const plate = form.querySelector('#plateNumber').value;
+            
+            // Simulate registration
+            setTimeout(() => {
+                alert(`Transit registered successfully!\nName: ${name}\nType: ${type}\nLicense: ${license}\nPlate: ${plate}`);
+                showMenu();
+            }, 1000);
+        }
+
+        function handleReport(event) {
+            event.preventDefault();
+            const form = event.target;
+            const title = form.querySelector('#reportTitle').value;
+            const type = form.querySelector('#reportType').value;
+            const location = form.querySelector('#reportLocation').value;
+            const description = form.querySelector('#reportDescription').value;
+            
+            // Simulate report submission
+            setTimeout(() => {
+                alert(`Report submitted successfully!\nTitle: ${title}\nType: ${type}\nLocation: ${location}`);
+                showMenu();
+            }, 1000);
+        }
+
+        function logout() {
+            currentUser = null;
+            showHome();
+        }
+
+        function showSignUp() {
+            alert('Sign Up: Create account with email/password\nDemo: Use passenger@example.com or operator@example.com');
+        }
+
+        function showAbout() {
+            alert('AI-TRACK: Transit Tracker\n\n✓ Real-time GPS tracking\n✓ Route optimization\n✓ Live vehicle monitoring\n✓ Report system\n✓ Multi-user support');
+        }
+
+        function showContact() {
+            alert('Contact AI-TRACK Support\n\nEmail: support@ai-track.com\nPhone: +63 123 456 7890\nWebsite: https://ai-track.com');
+        }
+
+        // Initialize
+        updateVehicles();
+    </script>
 </body>
 </html>
