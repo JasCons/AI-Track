@@ -21,10 +21,10 @@ class DefaultFirebaseOptions {
     }
   }
 
-  // ======= WEB (minimal) =======
+  // ======= WEB =======
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaEXAMPLE_web_api_key_1234567890',
-    appId: "1:370121170127:web:abcdef123456",
+    apiKey: 'AIzaSyDe5AvPQLcse9NwdR1td5PJbjWEAyp9mag',
+    appId: "1:370121170127:web:7c6e0a4fe0d6630df9abba",
     messagingSenderId: "370121170127",
     projectId: "ai-track-42cce",
     authDomain: "ai-track-42cce.firebaseapp.com",

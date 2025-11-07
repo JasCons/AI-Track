@@ -79,8 +79,15 @@ class _TransitRegisterPageState extends State<TransitRegisterPage> {
       String? serverId;
       String? serverError;
 
-      // If signed-in, always attempt Firestore write (regardless of toggle)
-      if (currentUser != null) {
+      // Attempt Firestore write when toggle is ON
+      if (_writeToFirestore) {
+        if (currentUser == null) {
+          setState(() {
+            _error = 'Please sign in to register transit to Firestore.';
+            _loading = false;
+          });
+          return;
+        }
         try {
           final id = await FirestoreService.instance.addTransit(
             transitName: transitName,
@@ -90,8 +97,10 @@ class _TransitRegisterPageState extends State<TransitRegisterPage> {
             operatorUid: currentUser.uid,
           );
           firestoreId = id;
+          print('Transit saved to Firestore: $firestoreId');
         } catch (e) {
           firestoreError = e.toString();
+          print('Firestore error: $e');
         }
       }
 
@@ -142,29 +151,30 @@ class _TransitRegisterPageState extends State<TransitRegisterPage> {
         }
       }
 
-      // If signed-in, create a single matching `routes` document so the
-      // TransitTrack page (which reads from `routes`) will list newly
-      // registered routes. When signed-in we attach the user's uid as
-      // createdBy.
-      if (currentUser != null) {
+      // Create matching `routes` document when writing to Firestore
+      if (_writeToFirestore && currentUser != null) {
         try {
-          final id = await FirestoreService.instance.addRoute(
+          final routeId = await FirestoreService.instance.addRoute(
             name: transitName,
             vehicle: vehicleCode,
             type: routeType,
             coordinates: coords,
             createdByUid: currentUser.uid,
           );
-          firestoreId = id;
+          print('Route saved to Firestore: $routeId');
+          
+          // Show success and return
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Transit registered: Transit ID: $firestoreId, Route ID: $routeId')),
+          );
+          Navigator.of(context).pop();
+          return;
         } catch (e) {
           firestoreError = (firestoreError == null)
               ? e.toString()
               : '$firestoreError; route: $e';
-          if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('Route created error: $e')));
-          }
+          print('Route creation error: $e');
         }
       }
 

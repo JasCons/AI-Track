@@ -78,8 +78,15 @@ class _ReportPageState extends State<ReportPage> {
       String? serverId;
       String? serverError;
 
-      // If user is signed in, always attempt a Firestore write (regardless of toggle).
-      if (currentUser != null) {
+      // Always attempt Firestore write when toggle is ON
+      if (_writeToFirestore) {
+        if (currentUser == null) {
+          setState(() {
+            _error = 'Please sign in to submit reports to Firestore.';
+            _loading = false;
+          });
+          return;
+        }
         try {
           final db = FirebaseFirestore.instance;
           final docRef = await db.collection('reports').add({
@@ -93,9 +100,21 @@ class _ReportPageState extends State<ReportPage> {
             'createdAt': FieldValue.serverTimestamp(),
           });
           firestoreId = docRef.id;
+          print('Report saved to Firestore: $firestoreId');
         } catch (e) {
           firestoreError = e.toString();
+          print('Firestore error: $e');
         }
+      }
+
+      // Show success if Firestore write succeeded
+      if (firestoreId != null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Report submitted to Firestore: $firestoreId')),
+        );
+        Navigator.of(context).pop();
+        return;
       }
 
       // If the toggle is OFF, also POST to the server endpoint via ApiService.
