@@ -24,11 +24,12 @@ class DefaultFirebaseOptions {
   // ======= WEB =======
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyDe5AvPQLcse9NwdR1td5PJbjWEAyp9mag',
-    appId: "1:370121170127:web:7c6e0a4fe0d6630df9abba",
+    appId: "1:370121170127:android:7c6e0a4fe0d6630df9abba",
     messagingSenderId: "370121170127",
     projectId: "ai-track-42cce",
     authDomain: "ai-track-42cce.firebaseapp.com",
     storageBucket: "ai-track-42cce.firebasestorage.app",
+    databaseURL: "https://ai-track-42cce.firebaseio.com",
   );
 
   // ======= ANDROID =======
