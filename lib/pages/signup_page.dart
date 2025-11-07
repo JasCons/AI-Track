@@ -48,9 +48,9 @@ class _SignUpPageState extends State<SignUpPage> {
       if (result['success'] == true) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_isSignUpMode ? 'Account created successfully' : 'Login successful')),
+          SnackBar(content: Text(_isSignUpMode ? 'Account created! Logging in...' : 'Login successful')),
         );
-        Navigator.of(context).pop();
+        Navigator.of(context).pushReplacementNamed('/menu');
       } else {
         setState(() {
           _error = result['error'] ?? (_isSignUpMode ? 'Registration failed' : 'Login failed');
