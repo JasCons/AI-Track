@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-TRACK: Transit Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #98FB98;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .logo-container {
+            width: 120px;
+            height: 120px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .logo-icon {
+            font-size: 64px;
+            color: #4CAF50;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: rgba(0,0,0,0.87);
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: rgba(0,0,0,0.54);
+            margin-bottom: 32px;
+        }
+
+        .button {
+            width: 220px;
+            padding: 16px;
+            border: none;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 16px;
+            transition: all 0.2s ease;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .button-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .button-primary:hover {
+            background-color: #45a049;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .button-secondary {
+            background-color: white;
+            color: #4CAF50;
+            border: 2px solid #4CAF50;
+        }
+
+        .button-secondary:hover {
+            background-color: #f5f5f5;
+            transform: translateY(-1px);
+        }
+
+        .button-outline {
+            background-color: transparent;
+            color: #4CAF50;
+            border: 2px solid #4CAF50;
+        }
+
+        .button-outline:hover {
+            background-color: rgba(76, 175, 80, 0.1);
+        }
+
+        /* Login Page Styles */
+        .login-container {
+            display: none;
+        }
+
+        .login-logo {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 24px;
+        }
+
+        .login-icon {
+            font-size: 56px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: white;
+            position: relative;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 20px;
+        }
+
+        .input-field-with-icon {
+            padding-left: 48px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            font-size: 20px;
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-bottom: 8px;
+        }
+
+        .forgot-password a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .error-message {
+            color: #f44336;
+            font-size: 14px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        /* Menu Page Styles */
+        .menu-container {
+            display: none;
+            max-width: 600px;
+        }
+
+        .menu-header {
+            background-color: white;
+            padding: 32px 16px;
+            border-radius: 0 0 32px 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            margin-bottom: 24px;
+        }
+
+        .menu-avatar {
+            width: 72px;
+            height: 72px;
+            background-color: #98FB98;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+        }
+
+        .menu-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: rgba(0,0,0,0.87);
+            margin-bottom: 4px;
+        }
+
+        .menu-role {
+            font-size: 16px;
+            color: rgba(0,0,0,0.54);
+        }
+
+        .menu-item {
+            background-color: white;
+            margin: 8px 16px;
+            border-radius: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .menu-item-content {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .menu-item-icon {
+            color: #4CAF50;
+            font-size: 28px;
+            margin-right: 16px;
+        }
+
+        .menu-item-text {
+            font-size: 18px;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .menu-item-arrow {
+            color: rgba(0,0,0,0.26);
+            font-size: 18px;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px;
+            }
+            
+            .button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Home Page -->
+    <div class="container" id="homePage">
+        <div class="logo-container">
+            <span class="material-icons logo-icon">directions_bus</span>
+        </div>
+        
+        <h1 class="title">AI-TRACK: Transit Tracker</h1>
+        <p class="subtitle">Welcome! Track and manage your transit with ease.</p>
+        
+        <button class="button button-primary" onclick="showLoginSelector()">Log In</button>
+        <button class="button button-secondary" onclick="showSignUp()">Sign Up</button>
+        <button class="button button-outline" onclick="showAbout()">About Us</button>
+        <button class="button button-outline" onclick="showContact()">Contact Us</button>
+    </div>
+
+    <!-- Login Selector Page -->
+    <div class="container login-container" id="loginSelector">
+        <button class="back-button" onclick="showHome()">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        
+        <div class="logo-container login-logo">
+            <span class="material-icons login-icon">lock</span>
+        </div>
+        
+        <h1 class="title">Select Login Type</h1>
+        <p class="subtitle">Choose your account type</p>
+        
+        <button class="button button-primary" onclick="showPassengerLogin()">Passenger Login</button>
+        <button class="button" style="background-color: #2196F3; color: white;" onclick="showOperatorLogin()">Operator Login</button>
+    </div>
+
+    <!-- Passenger Login Page -->
+    <div class="container login-container" id="passengerLogin">
+        <button class="back-button" onclick="showLoginSelector()">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        
+        <div class="logo-container login-logo">
+            <span class="material-icons login-icon">person</span>
+        </div>
+        
+        <h1 class="title">Passenger Login</h1>
+        <p class="subtitle">Enter your passenger credentials</p>
+        
+        <form onsubmit="handleLogin(event, 'passenger')">
+            <div class="form-group">
+                <div class="input-with-icon">
+                    <span class="material-icons input-icon">person</span>
+                    <input type="email" class="input-field input-field-with-icon" placeholder="Passenger Email" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <div class="input-with-icon">
+                    <span class="material-icons input-icon">lock_outline</span>
+                    <input type="password" class="input-field input-field-with-icon" placeholder="Password" id="passengerPassword" required>
+                    <button type="button" class="password-toggle" onclick="togglePassword('passengerPassword')">
+                        <span class="material-icons">visibility_off</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="forgot-password">
+                <a href="#" onclick="showForgotPassword()">Forgot Password?</a>
+            </div>
+            
+            <div class="error-message" id="passengerError" style="display: none;"></div>
+            
+            <button type="submit" class="button button-primary">Login</button>
+        </form>
+    </div>
+
+    <!-- Operator Login Page -->
+    <div class="container login-container" id="operatorLogin">
+        <button class="back-button" onclick="showLoginSelector()">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        
+        <div class="logo-container login-logo">
+            <span class="material-icons login-icon">engineering</span>
+        </div>
+        
+        <h1 class="title">Operator Login</h1>
+        <p class="subtitle">Enter your operator credentials</p>
+        
+        <form onsubmit="handleLogin(event, 'operator')">
+            <div class="form-group">
+                <div class="input-with-icon">
+                    <span class="material-icons input-icon">person</span>
+                    <input type="email" class="input-field input-field-with-icon" placeholder="Operator Email" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <div class="input-with-icon">
+                    <span class="material-icons input-icon">lock_outline</span>
+                    <input type="password" class="input-field input-field-with-icon" placeholder="Password" id="operatorPassword" required>
+                    <button type="button" class="password-toggle" onclick="togglePassword('operatorPassword')">
+                        <span class="material-icons">visibility_off</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="forgot-password">
+                <a href="#" onclick="showForgotPassword()">Forgot Password?</a>
+            </div>
+            
+            <div class="error-message" id="operatorError" style="display: none;"></div>
+            
+            <button type="submit" class="button button-primary">Login</button>
+        </form>
+    </div>
+
+    <!-- Menu Page -->
+    <div class="container menu-container" id="menuPage">
+        <div class="menu-header">
+            <div class="menu-avatar">
+                <span class="material-icons" style="font-size: 56px; color: #4CAF50;">account_circle</span>
+            </div>
+            <div class="menu-title">AI-TRACK</div>
+            <div class="menu-role" id="userRole">Role: Loading...</div>
+        </div>
+        
+        <div class="menu-item" onclick="showFeature('Transit Track')">
+            <div class="menu-item-content">
+                <span class="material-icons menu-item-icon">map</span>
+                <span class="menu-item-text">Transit Track</span>
+                <span class="material-icons menu-item-arrow">arrow_forward_ios</span>
+            </div>
+        </div>
+        
+        <div class="menu-item" onclick="showFeature('Transit Register')">
+            <div class="menu-item-content">
+                <span class="material-icons menu-item-icon">app_registration</span>
+                <span class="menu-item-text">Transit Register</span>
+                <span class="material-icons menu-item-arrow">arrow_forward_ios</span>
+            </div>
+        </div>
+        
+        <div class="menu-item" onclick="showFeature('Report')">
+            <div class="menu-item-content">
+                <span class="material-icons menu-item-icon">report</span>
+                <span class="menu-item-text">Report</span>
+                <span class="material-icons menu-item-arrow">arrow_forward_ios</span>
+            </div>
+        </div>
+        
+        <div class="menu-item" onclick="showFeature('Add Test Routes')">
+            <div class="menu-item-content">
+                <span class="material-icons menu-item-icon">add_location</span>
+                <span class="menu-item-text">Add Test Routes</span>
+                <span class="material-icons menu-item-arrow">arrow_forward_ios</span>
+            </div>
+        </div>
+        
+        <div class="menu-item" onclick="showFeature('Debug Routes')">
+            <div class="menu-item-content">
+                <span class="material-icons menu-item-icon">bug_report</span>
+                <span class="menu-item-text">Debug Routes</span>
+                <span class="material-icons menu-item-arrow">arrow_forward_ios</span>
+            </div>
+        </div>
+        
+        <div class="menu-item" onclick="showFeature('Quick Add Route')">
+            <div class="menu-item-content">
+                <span class="material-icons menu-item-icon">flash_on</span>
+                <span class="menu-item-text">Quick Add Route</span>
+                <span class="material-icons menu-item-arrow">arrow_forward_ios</span>
+            </div>
+        </div>
+        
+        <div class="menu-item" onclick="logout()">
+            <div class="menu-item-content">
+                <span class="material-icons menu-item-icon">logout</span>
+                <span class="menu-item-text">Log Out</span>
+                <span class="material-icons menu-item-arrow">arrow_forward_ios</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        function showHome() {
+            hideAllPages();
+            document.getElementById('homePage').style.display = 'block';
+        }
+
+        function showLoginSelector() {
+            hideAllPages();
+            document.getElementById('loginSelector').style.display = 'block';
+        }
+
+        function showPassengerLogin() {
+            hideAllPages();
+            document.getElementById('passengerLogin').style.display = 'block';
+        }
+
+        function showOperatorLogin() {
+            hideAllPages();
+            document.getElementById('operatorLogin').style.display = 'block';
+        }
+
+        function showMenu(userType) {
+            hideAllPages();
+            document.getElementById('menuPage').style.display = 'block';
+            document.getElementById('userRole').textContent = `Role: ${userType}`;
+            currentUser = userType;
+        }
+
+        function hideAllPages() {
+            const pages = ['homePage', 'loginSelector', 'passengerLogin', 'operatorLogin', 'menuPage'];
+            pages.forEach(page => {
+                document.getElementById(page).style.display = 'none';
+            });
+        }
+
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const button = input.nextElementSibling;
+            const icon = button.querySelector('.material-icons');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = 'visibility';
+            } else {
+                input.type = 'password';
+                icon.textContent = 'visibility_off';
+            }
+        }
+
+        function handleLogin(event, userType) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const email = form.querySelector('input[type="email"]').value;
+            const password = form.querySelector('input[type="password"]').value;
+            
+            // Demo credentials
+            const validCredentials = {
+                'passenger@example.com': 'pass123',
+                'operator@example.com': 'op123'
+            };
+            
+            const errorElement = document.getElementById(`${userType}Error`);
+            
+            if (validCredentials[email] === password) {
+                showMenu(userType);
+            } else {
+                errorElement.textContent = 'Invalid email or password. Try passenger@example.com/pass123 or operator@example.com/op123';
+                errorElement.style.display = 'block';
+            }
+        }
+
+        function showFeature(featureName) {
+            alert(`${featureName} feature would open here.\n\nThis is a web demo matching your Flutter app design.\nThe full functionality is available in the mobile app.`);
+        }
+
+        function logout() {
+            currentUser = null;
+            showHome();
+        }
+
+        function showSignUp() {
+            alert('Sign Up feature would open here.\nThis demo focuses on the login flow matching your Flutter app.');
+        }
+
+        function showAbout() {
+            alert('AI-TRACK: Transit Tracker\n\nSmart transit tracking system with real-time GPS tracking, route optimization, and analytics.');
+        }
+
+        function showContact() {
+            alert('Contact Us\n\nFor support and inquiries about AI-TRACK Transit Tracker.');
+        }
+
+        function showForgotPassword() {
+            alert('Forgot Password feature would open here.');
+        }
+
+        // Initialize
+        showHome();
+    </script>
+</body>
+</html>

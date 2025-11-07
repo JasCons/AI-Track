@@ -315,7 +315,25 @@ class HomePage extends StatelessWidget {
                 SizedBox(
                   width: 220,
                   child: OutlinedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('About AI-TRACK'),
+                          content: const Text(
+                            'AI-TRACK: Transit Tracker\n\n'
+                            'Smart transit tracking system with real-time GPS tracking, '
+                            'route optimization, and analytics.'
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Close'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.green,
                       side: const BorderSide(color: Colors.green, width: 2),
@@ -334,7 +352,23 @@ class HomePage extends StatelessWidget {
                 SizedBox(
                   width: 220,
                   child: OutlinedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Contact Us'),
+                          content: const Text(
+                            'For support and inquiries about AI-TRACK Transit Tracker.'
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Close'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.green,
                       side: const BorderSide(color: Colors.green, width: 2),
