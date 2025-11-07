@@ -61,7 +61,7 @@ class _LogoutPageState extends State<LogoutPage> {
                 const SizedBox(height: 32),
                 if (_loading)
                   const CircularProgressIndicator()
-                else ..[
+                else ...[
                   SizedBox(
                     width: 220,
                     child: ElevatedButton(
