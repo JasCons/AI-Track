@@ -20,16 +20,20 @@ jobs:
 
       - name: Install Flutter
         run: |
-          # Install Flutter SDK from the stable channel (shallow clone). Persist bin to PATH.
           git clone --depth 1 https://github.com/flutter/flutter.git -b stable $HOME/flutter
           echo "$HOME/flutter/bin" >> $GITHUB_PATH
+          export PATH="$HOME/flutter/bin:$PATH"
           flutter --version
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          export PATH="$HOME/flutter/bin:$PATH"
+          flutter pub get
 
       - name: Build Flutter web
-        run: flutter build web --release --base-href "/AI-Track/"
+        run: |
+          export PATH="$HOME/flutter/bin:$PATH"
+          flutter build web --release --base-href "/AI-Track/"
 
       - name: Publish to gh-pages branch (no Actions required)
         env:
