@@ -22,7 +22,7 @@ class _TransitRegisterPageState extends State<TransitRegisterPage> {
   String? _transitType;
   bool _loading = false;
   String? _error;
-  bool _writeToFirestore = false;
+  bool _writeToFirestore = true;
 
   static const List<String> _transitTypes = [
     'Bus',

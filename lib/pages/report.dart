@@ -18,7 +18,7 @@ class _ReportPageState extends State<ReportPage> {
   String? _reportType;
   bool _loading = false;
   String? _error;
-  bool _writeToFirestore = false;
+  bool _writeToFirestore = true;
   String? _transitId;
 
   static const List<String> _reportTypes = [
