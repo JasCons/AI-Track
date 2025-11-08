@@ -6,13 +6,13 @@ plugins {
 }
 
 import java.io.FileInputStream
+import java.util.Properties
 
 // Load signing properties from key.properties (kept out of VCS)
 val keystorePropertiesFile = rootProject.file("key.properties")
-val keystoreProperties = java.util.Properties().apply {
-    if (keystorePropertiesFile.exists()) {
-        keystorePropertiesFile.inputStream().use { load(it) }
-    }
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    FileInputStream(keystorePropertiesFile).use { keystoreProperties.load(it) }
 }
 
 android {
@@ -60,9 +60,8 @@ android {
             } catch (e: Exception) {
                 signingConfig = signingConfigs.getByName("debug")
             }
-            // Keep minify disabled for test releases; enable for production
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            isShrinkResources = false
         }
     }
 }
