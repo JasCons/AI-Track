@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Helper to produce a single-line base64 representation of a keystore
-# Usage: ./scripts/encode-keystore.sh path/to/ai_track.jks [out.b64]
 
 if [ -z "$1" ]; then
   echo "Usage: $0 path/to/keystore.jks [out.b64]"
@@ -13,7 +11,6 @@ if [ ! -f "$KS" ]; then
   exit 1
 fi
 
-# Try GNU base64 --wrap=0, otherwise use base64 (macOS) or openssl as fallback
 if base64 --help 2>&1 | grep -q -- '--wrap'; then
   if [ -n "$OUT" ]; then
     base64 --wrap=0 "$KS" > "$OUT"

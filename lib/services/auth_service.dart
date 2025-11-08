@@ -8,7 +8,6 @@ class AuthService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final DebugLogger _log = DebugLogger();
 
-  /// LOGIN with email and password
   Future<Map<String, dynamic>> login(
     String usernameOrEmail,
     String password,
@@ -49,7 +48,6 @@ class AuthService {
           }
         } catch (e, st) {
           _log.log('Error writing/reading users/${user.uid} doc: $e');
-          // Attempt to capture token and project info to aid debugging
           try {
             final token = await user.getIdToken();
             if (token != null && token.length > 50) {
@@ -78,7 +76,6 @@ class AuthService {
         'FirebaseAuthException during login: code=${e.code}, message=${e.message}',
       );
 
-      // No username lookup here: return user-not-found to the caller.
       String message;
       switch (e.code) {
         case 'invalid-email':
@@ -101,27 +98,17 @@ class AuthService {
       }
       return {'success': false, 'error': message};
     } catch (e, st) {
-      // Some plugin/pigeon mismatches surface as cast/type errors even though
-      // the native side completed sign-in and the Firebase SDK updated the
-      // current user (we saw id token listeners notified). As a pragmatic
-      // workaround, if a currentUser exists treat this as a success and
-      // return that user. Log the original error for later investigation.
       _log.log('Exception during login: $e');
       _log.log('Stacktrace: $st');
       final current = _auth.currentUser;
       if (current != null) {
-        // ignore: avoid_print
-        print(
-          'AuthService.login: caught exception but currentUser != null; '
-          'treating login as success. error: $e\n$st',
-        );
+        print('AuthService.login: exception but currentUser exists: $e\n$st');
         return {'success': true, 'user': current};
       }
       return {'success': false, 'error': e.toString()};
     }
   }
 
-  /// SIGNUP (Register new user)
   Future<Map<String, dynamic>> register(
     String email,
     String password, {
@@ -190,14 +177,11 @@ class AuthService {
     }
   }
 
-  /// LOGOUT
   Future<void> logout() async {
     await _auth.signOut();
   }
 
-  /// CURRENT USER
   User? get currentUser => _auth.currentUser;
 
-  /// AUTH STATE STREAM
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 }

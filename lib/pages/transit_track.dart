@@ -2,9 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
-// Firestore access is routed through `FirestoreService` helper.
-
 import '../services/firestore_service.dart';
 import '../services/prediction_service.dart';
 import '../services/vehicle_simulator.dart';
@@ -59,7 +56,6 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
     });
 
     try {
-      // Skip API server, go directly to Firestore for faster loading
       final serverRoutes = <Map<String, dynamic>>[];
 
       if (serverRoutes.isNotEmpty) {
@@ -80,26 +76,17 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
               : null;
         });
       } else {
-        // Fallback to Firestore (route_register's database). We seed an
-        // in-memory map with the one-off result from `routes` or the
-        // transit-derived fallback and then subscribe to both `routes`
-        // and `transit` collections so the UI shows entries from either
-        // source in real time.
         final routes = await FirestoreService.instance
             .getRoutesOrTransitFallback(
               vehicle: _selectedVehicle!,
               type: _selectedType,
             );
 
-        // Seed the merged map with the one-off result from routes or the
-        // transit fallback we received above.
         _routesById.clear();
         for (final r in routes) {
           _routesById[r['id'] as String] = Map<String, dynamic>.from(r);
         }
 
-        // If we have a selected id, ensure the selected route exists in the
-        // merged results and update the map view.
         setState(() {
           _availableRoutes = _routesById.values.toList(growable: false);
           _selectedRouteId = _availableRoutes.isNotEmpty
@@ -115,8 +102,6 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
           _startVehicleTracking();
         }
 
-        // Subscribe to `routes` collection for live updates and merge into
-        // the in-memory map.
         _routesSubscription?.cancel();
         _routesSubscription = FirestoreService.instance
             .routesStream(vehicle: _selectedVehicle!, type: _selectedType)
@@ -138,17 +123,12 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
                   }
                 });
               } catch (e, st) {
-                // Log and surface a non-fatal error instead of crashing the app.
-                // ignore: avoid_print
                 print('TransitTrack routesStream handler error: $e\n$st');
                 if (!mounted) return;
                 setState(() => _error = e.toString());
               }
             }, onError: (e) => setState(() => _error = e.toString()));
 
-        // Also subscribe to recent transit docs so entries written only
-        // into `transit` appear live. Filter client-side for best-effort
-        // matches.
         _transitSubscription?.cancel();
         _transitSubscription = FirestoreService.instance.transitStream().listen((
           snap,
@@ -180,8 +160,6 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
               }
             });
           } catch (e, st) {
-            // ignore malformed transit docs; surface error instead of crashing
-            // ignore: avoid_print
             print('TransitTrack transitStream handler error: $e\n$st');
             if (!mounted) return;
             setState(() => _error = e.toString());
@@ -208,33 +186,41 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
         .where('route', isEqualTo: _selectedRouteId)
         .snapshots()
         .listen((snapshot) {
-      _mapMarkers.removeWhere((m) => m.markerId.value.startsWith('vehicle_'));
-      
-      for (var doc in snapshot.docs) {
-        final data = doc.data();
-        final lat = data['lat'] as double?;
-        final lng = data['lng'] as double?;
-        final plateNumber = data['plateNumber'] as String?;
-        
-        if (lat != null && lng != null) {
-          _mapMarkers.add(Marker(
-            markerId: MarkerId('vehicle_${doc.id}'),
-            position: LatLng(lat, lng),
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
-            infoWindow: InfoWindow(
-              title: plateNumber ?? 'Vehicle',
-              snippet: data['eta'] != null ? 'ETA: ${data['eta']} min' : 'In transit',
-            ),
-          ));
-          
-          if (data['eta'] != null && mounted) {
-            setState(() => _predictedArrivalMinutes = data['eta'] as int);
+          _mapMarkers.removeWhere(
+            (m) => m.markerId.value.startsWith('vehicle_'),
+          );
+
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+            final lat = data['lat'] as double?;
+            final lng = data['lng'] as double?;
+            final plateNumber = data['plateNumber'] as String?;
+
+            if (lat != null && lng != null) {
+              _mapMarkers.add(
+                Marker(
+                  markerId: MarkerId('vehicle_${doc.id}'),
+                  position: LatLng(lat, lng),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(
+                    BitmapDescriptor.hueOrange,
+                  ),
+                  infoWindow: InfoWindow(
+                    title: plateNumber ?? 'Vehicle',
+                    snippet: data['eta'] != null
+                        ? 'ETA: ${data['eta']} min'
+                        : 'In transit',
+                  ),
+                ),
+              );
+
+              if (data['eta'] != null && mounted) {
+                setState(() => _predictedArrivalMinutes = data['eta'] as int);
+              }
+            }
           }
-        }
-      }
-      
-      if (mounted) setState(() {});
-    });
+
+          if (mounted) setState(() {});
+        });
   }
 
   void _updateMapFromRoute(Map<String, dynamic> route) {
@@ -249,7 +235,6 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
         return null;
       }
 
-      // Common shapes: 'coordinates' as List of {lat: ..., lng: ...}
       final coords = route['coordinates'];
       if (coords is List && coords.isNotEmpty) {
         final points = <LatLng>[];
@@ -265,12 +250,10 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
               if (lat != null && lng != null) points.add(LatLng(lat, lng));
             }
           } catch (_) {
-            // ignore malformed coordinate entries
             continue;
           }
         }
         if (points.isNotEmpty) {
-          // Remove duplicate consecutive points
           final uniquePoints = <LatLng>[points.first];
           for (int i = 1; i < points.length; i++) {
             if (points[i].latitude != uniquePoints.last.latitude ||
@@ -278,21 +261,26 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
               uniquePoints.add(points[i]);
             }
           }
-          
-          // Add markers for endpoints and a polyline for the route
+
           _mapMarkers.add(
             Marker(
               markerId: const MarkerId('start'),
               position: uniquePoints.first,
-              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-              infoWindow: InfoWindow(title: route['name']?.toString() ?? 'Start'),
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueGreen,
+              ),
+              infoWindow: InfoWindow(
+                title: route['name']?.toString() ?? 'Start',
+              ),
             ),
           );
           _mapMarkers.add(
             Marker(
               markerId: const MarkerId('end'),
               position: uniquePoints.last,
-              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueRed,
+              ),
               infoWindow: const InfoWindow(title: 'Destination'),
             ),
           );
@@ -304,7 +292,6 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
               width: 4,
             ),
           );
-          // Move camera to first point
           _mapController?.animateCamera(
             CameraUpdate.newLatLngZoom(points.first, 13),
           );
@@ -313,7 +300,6 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
         }
       }
 
-      // Fallback: single coordinate fields
       final lat = parseDouble(route['lat']);
       final lng = parseDouble(route['lng']);
       if (lat != null && lng != null) {
@@ -323,8 +309,6 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
         if (mounted) setState(() {});
       }
     } catch (e, st) {
-      // Avoid crashing the UI due to malformed route data; log and continue.
-      // ignore: avoid_print
       print('TransitTrack _updateMapFromRoute error: $e\n$st');
     }
   }
@@ -604,9 +588,15 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
                             children: [
                               Expanded(
                                 child: ElevatedButton.icon(
-                                  onPressed: _isSimulating ? null : _startSimulation,
+                                  onPressed: _isSimulating
+                                      ? null
+                                      : _startSimulation,
                                   icon: const Icon(Icons.play_arrow),
-                                  label: Text(_isSimulating ? 'Tracking...' : 'Start Live Track'),
+                                  label: Text(
+                                    _isSimulating
+                                        ? 'Tracking...'
+                                        : 'Start Live Track',
+                                  ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.green,
                                   ),
@@ -615,7 +605,9 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: ElevatedButton.icon(
-                                  onPressed: !_isSimulating ? null : _stopSimulation,
+                                  onPressed: !_isSimulating
+                                      ? null
+                                      : _stopSimulation,
                                   icon: const Icon(Icons.stop),
                                   label: const Text('Stop'),
                                   style: ElevatedButton.styleFrom(
@@ -640,9 +632,6 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
 
   Future<void> _debugShowRawRoutes() async {
     try {
-      // Dev: allow reading routes without sign-in (firestore.rules set to
-      // public read for /routes in dev). This helps debugging when testing
-      // on different devices or emulators.
       if (_selectedVehicle == null) {
         ScaffoldMessenger.of(
           context,
@@ -653,9 +642,6 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
         vehicle: _selectedVehicle!,
         type: _selectedType,
       );
-      // Also fetch recent `transit` docs as a debugging aid so you can
-      // inspect the original documents that may have been written instead
-      // of `routes` entries.
       final transitDocs = await FirestoreService.instance
           .transitStream()
           .first
@@ -691,6 +677,7 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
     }
   }
 
+  // ignore: unused_element
   Future<void> _predictArrival() async {
     if (_selectedRouteId == null) return;
 
@@ -761,14 +748,14 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
 
   void _startSimulation() {
     if (_selectedRouteId == null) return;
-    
+
     final route = _availableRoutes.firstWhere(
       (r) => r['id'] == _selectedRouteId,
       orElse: () => {},
     );
-    
+
     if (route.isEmpty) return;
-    
+
     final coords = route['coordinates'];
     if (coords is List && coords.isNotEmpty) {
       final points = <LatLng>[];
@@ -787,7 +774,7 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
           continue;
         }
       }
-      
+
       if (points.isNotEmpty) {
         VehicleSimulator.instance.startSimulation(
           _selectedRouteId!,
@@ -809,9 +796,9 @@ class _TransitTrackPageState extends State<TransitTrackPage> {
       VehicleSimulator.instance.stopSimulation(_selectedRouteId!);
       setState(() => _isSimulating = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Live tracking stopped')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Live tracking stopped')));
       }
     }
   }

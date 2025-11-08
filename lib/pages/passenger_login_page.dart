@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import '../firebase_options.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:firebase_core/firebase_core.dart';
 
 class PassengerLoginPage extends StatefulWidget {
   const PassengerLoginPage({super.key});
@@ -19,6 +15,13 @@ class _PassengerLoginPageState extends State<PassengerLoginPage> {
   String? errorMessage;
 
   @override
+  void dispose() {
+    usernameController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF98FB98),
@@ -30,7 +33,6 @@ class _PassengerLoginPageState extends State<PassengerLoginPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Placeholder for logo
                   Container(
                     width: 100,
                     height: 100,
@@ -118,13 +120,10 @@ class _PassengerLoginPageState extends State<PassengerLoginPage> {
                         });
                         final username = usernameController.text.trim();
                         final password = passwordController.text;
-                        // validate email or username (allow demo usernames)
                         bool isValidLogin(String v) {
                           if (v.isEmpty) return false;
-                          // permissive email check
                           final emailRe = RegExp(r"^[^@\s]+@[^@\s]+\.[^@\s]+");
                           if (emailRe.hasMatch(v)) return true;
-                          // username: 2+ chars, letters/numbers/._- allowed
                           final userRe = RegExp(r"^[A-Za-z0-9._-]{2,}");
                           return userRe.hasMatch(v);
                         }
@@ -137,8 +136,6 @@ class _PassengerLoginPageState extends State<PassengerLoginPage> {
                         }
                         final auth = AuthService();
                         final result = await auth.login(username, password);
-                        // Debug: log the raw result so we can diagnose navigation failures
-                        // ignore: avoid_print
                         print('Passenger login result: $result');
                         if (!mounted) return;
                         if (result['success'] == true) {
@@ -166,137 +163,7 @@ class _PassengerLoginPageState extends State<PassengerLoginPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  // Debug helpers
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () async {
-                            // Show configured Firebase options and runtime apps
-                            String runtime = '';
-                            try {
-                              final apps = Firebase.apps
-                                  .map((a) => a.name)
-                                  .join(', ');
-                              final options = Firebase.app().options;
-                              runtime = 'Firebase apps: $apps\n';
-                              runtime += 'projectId: ${options.projectId}\n';
-                              runtime += 'apiKey: ${options.apiKey}\n';
-                              runtime += 'appId: ${options.appId}\n';
-                            } catch (e) {
-                              runtime = 'Failed to read Firebase.app(): $e\n';
-                            }
-                            final staticOpts =
-                                DefaultFirebaseOptions.currentPlatform;
-                            runtime +=
-                                '\nDefaultFirebaseOptions.currentPlatform:\n';
-                            runtime += 'projectId: ${staticOpts.projectId}\n';
-                            runtime += 'apiKey: ${staticOpts.apiKey}\n';
 
-                            // Show dialog with the info
-                            if (!mounted) return;
-                            await showDialog<void>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Firebase Runtime / Config'),
-                                content: SingleChildScrollView(
-                                  child: Text(runtime),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
-                                    child: const Text('Close'),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                          child: const Text('Show Firebase Config'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () async {
-                            // REST sign-in test using project's API key
-                            final username = usernameController.text.trim();
-                            final password = passwordController.text;
-                            final emailRe = RegExp(
-                              r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
-                            );
-                            if (!emailRe.hasMatch(username)) {
-                              if (!mounted) return;
-                              setState(() {
-                                errorMessage =
-                                    'Enter a valid email to run REST sign-in test.';
-                              });
-                              return;
-                            }
-
-                            final apiKey =
-                                DefaultFirebaseOptions.currentPlatform.apiKey;
-                            final uri = Uri.parse(
-                              'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=$apiKey',
-                            );
-                            Map<String, dynamic> body = {
-                              'email': username,
-                              'password': password,
-                              'returnSecureToken': true,
-                            };
-                            try {
-                              final resp = await http
-                                  .post(
-                                    uri,
-                                    headers: {
-                                      'Content-Type': 'application/json',
-                                    },
-                                    body: jsonEncode(body),
-                                  )
-                                  .timeout(const Duration(seconds: 10));
-                              if (!mounted) return;
-                              await showDialog<void>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text(
-                                    'REST sign-in (${resp.statusCode})',
-                                  ),
-                                  content: SingleChildScrollView(
-                                    child: Text(resp.body),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(),
-                                      child: const Text('Close'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            } catch (e) {
-                              if (!mounted) return;
-                              await showDialog<void>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('REST sign-in failed'),
-                                  content: Text('Error: $e'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(),
-                                      child: const Text('Close'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }
-                          },
-                          child: const Text('Test REST Sign-in'),
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),

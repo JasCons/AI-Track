@@ -16,6 +16,13 @@ class _OperatorLoginPageState extends State<OperatorLoginPage> {
   String? errorMessage;
 
   @override
+  void dispose() {
+    usernameController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF98FB98),
@@ -27,7 +34,6 @@ class _OperatorLoginPageState extends State<OperatorLoginPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Placeholder for logo
                   Container(
                     width: 100,
                     height: 100,
@@ -115,13 +121,10 @@ class _OperatorLoginPageState extends State<OperatorLoginPage> {
                         });
                         final username = usernameController.text.trim();
                         final password = passwordController.text;
-                        // validate email or username (allow demo usernames)
                         bool isValidLogin(String v) {
                           if (v.isEmpty) return false;
-                          // permissive email check
                           final emailRe = RegExp(r"^[^@\s]+@[^@\s]+\.[^@\s]+");
                           if (emailRe.hasMatch(v)) return true;
-                          // username: 2+ chars, letters/numbers/._- allowed
                           final userRe = RegExp(r"^[A-Za-z0-9._-]{2,}");
                           return userRe.hasMatch(v);
                         }
@@ -134,8 +137,6 @@ class _OperatorLoginPageState extends State<OperatorLoginPage> {
                         }
                         final auth = AuthService();
                         final result = await auth.login(username, password);
-                        // Debug: log the raw result so we can diagnose navigation failures
-                        // ignore: avoid_print
                         print('Operator login result: $result');
                         if (!mounted) return;
                         if (result['success'] == true) {

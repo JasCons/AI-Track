@@ -57,7 +57,6 @@ class _TransitRegisterPageState extends State<TransitRegisterPage> {
     final String plateNumber = _plateController.text.trim();
 
     try {
-      // Attempt to get firebase id token if signed in and detect current user
       String? token;
       User? currentUser;
       try {
@@ -65,7 +64,6 @@ class _TransitRegisterPageState extends State<TransitRegisterPage> {
         if (currentUser != null) token = await currentUser.getIdToken();
       } catch (_) {}
 
-      // If user explicitly selected Firestore-only mode, require sign-in
       if (_writeToFirestore && currentUser == null) {
         setState(() {
           _error = 'Please sign in before writing to Firestore.';
@@ -79,7 +77,6 @@ class _TransitRegisterPageState extends State<TransitRegisterPage> {
       String? serverId;
       String? serverError;
 
-      // Attempt Firestore write when toggle is ON
       if (_writeToFirestore) {
         if (currentUser == null) {
           setState(() {
@@ -104,9 +101,6 @@ class _TransitRegisterPageState extends State<TransitRegisterPage> {
         }
       }
 
-      // Normalize transit type into a short vehicle id and parse optional
-      // coordinates early so we can use them for both Firestore and server
-      // registration paths.
       String vehicleCode = 'other';
       final t = (_transitType ?? '').toLowerCase();
       if (t.contains('bus')) {
@@ -117,21 +111,17 @@ class _TransitRegisterPageState extends State<TransitRegisterPage> {
         vehicleCode = 'rail';
       }
 
-      // default route type is 'road' for road-bound vehicles
       final routeType = vehicleCode == 'rail' ? 'rail' : 'road';
 
-      // Auto-generate coordinates from route name or parse manual input
       List<dynamic>? coords;
       final coordsText = _coordsController.text.trim();
       
       if (coordsText.isEmpty) {
-        // Auto-generate from route name
         final generated = RouteGenerator.generateRoute(transitName);
         if (generated.isNotEmpty) {
           coords = generated.map((p) => {'lat': p.latitude, 'lng': p.longitude}).toList();
         }
       } else {
-        // Manual coordinates provided
         try {
           final parsed = jsonDecode(coordsText);
           if (parsed is List) {
@@ -151,7 +141,6 @@ class _TransitRegisterPageState extends State<TransitRegisterPage> {
         }
       }
 
-      // Create matching `routes` document when writing to Firestore
       if (_writeToFirestore && currentUser != null) {
         try {
           final routeId = await FirestoreService.instance.addRoute(
@@ -163,7 +152,6 @@ class _TransitRegisterPageState extends State<TransitRegisterPage> {
           );
           print('Route saved to Firestore: $routeId');
           
-          // Show success and return
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Transit registered: Transit ID: $firestoreId, Route ID: $routeId')),
@@ -178,7 +166,6 @@ class _TransitRegisterPageState extends State<TransitRegisterPage> {
         }
       }
 
-      // If toggle is OFF, also post to server via ApiService
       if (!_writeToFirestore) {
         final payload = {
           'transitName': transitName,
@@ -196,11 +183,6 @@ class _TransitRegisterPageState extends State<TransitRegisterPage> {
         }
       }
 
-      // If the server registered this transit but we did not create a
-      // `routes` document locally (for example because the user was not
-      // signed-in), attempt to create a normalized `routes` document so
-      // the tracker can find it. This may fail due to Firestore rules
-      // (when not authenticated); if so we surface a non-fatal message.
       if (serverId != null && firestoreId == null) {
         try {
           final id = await FirestoreService.instance.addRoute(
@@ -225,7 +207,6 @@ class _TransitRegisterPageState extends State<TransitRegisterPage> {
         }
       }
 
-      // Decide what to show
       if (firestoreId != null || serverId != null) {
         final parts = <String>[];
         if (firestoreId != null) parts.add('Firestore id: $firestoreId');
@@ -280,7 +261,6 @@ class _TransitRegisterPageState extends State<TransitRegisterPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Toggle: write directly to Firestore instead of server
                 Row(
                   children: [
                     Switch(

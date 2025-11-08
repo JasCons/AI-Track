@@ -54,7 +54,6 @@ class _ReportPageState extends State<ReportPage> {
     final String location = _locationController.text.trim();
 
     try {
-      // Attempt to get firebase id token if signed in
       String? token;
       User? currentUser;
       try {
@@ -64,7 +63,6 @@ class _ReportPageState extends State<ReportPage> {
         }
       } catch (_) {}
 
-      // If user explicitly asked to write only to Firestore, require sign-in
       if (_writeToFirestore && currentUser == null) {
         setState(() {
           _error = 'Please sign in before writing reports to Firestore.';
@@ -78,7 +76,6 @@ class _ReportPageState extends State<ReportPage> {
       String? serverId;
       String? serverError;
 
-      // Always attempt Firestore write when toggle is ON
       if (_writeToFirestore) {
         if (currentUser == null) {
           setState(() {
@@ -107,7 +104,6 @@ class _ReportPageState extends State<ReportPage> {
         }
       }
 
-      // Show success if Firestore write succeeded
       if (firestoreId != null) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -117,7 +113,6 @@ class _ReportPageState extends State<ReportPage> {
         return;
       }
 
-      // If the toggle is OFF, also POST to the server endpoint via ApiService.
       if (!_writeToFirestore) {
         final payload = {
           'title': title,
@@ -136,7 +131,6 @@ class _ReportPageState extends State<ReportPage> {
         }
       }
 
-      // Decide what to show to the user
       if (firestoreId != null || serverId != null) {
         final parts = <String>[];
         if (firestoreId != null) parts.add('Firestore id: $firestoreId');
@@ -148,7 +142,6 @@ class _ReportPageState extends State<ReportPage> {
         ).showSnackBar(SnackBar(content: Text(message)));
         Navigator.of(context).pop();
       } else {
-        // Both failed — show combined errors
         final errors = <String>[];
         if (firestoreError != null) errors.add('Firestore: $firestoreError');
         if (serverError != null) errors.add('Server: $serverError');
@@ -187,7 +180,6 @@ class _ReportPageState extends State<ReportPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Toggle: write directly to Firestore instead of server
                 Row(
                   children: [
                     Switch(

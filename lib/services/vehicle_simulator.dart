@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:math';
+// removed unused import 'dart:math'
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -9,11 +9,17 @@ class VehicleSimulator {
 
   final Map<String, Timer> _activeSimulations = {};
 
-  void startSimulation(String route, List<LatLng> routePoints, String plateNumber) {
+  void startSimulation(
+    String route,
+    List<LatLng> routePoints,
+    String plateNumber,
+  ) {
     stopSimulation(route);
-    
+
     int currentIndex = 0;
-    _activeSimulations[route] = Timer.periodic(const Duration(seconds: 5), (timer) async {
+    _activeSimulations[route] = Timer.periodic(const Duration(seconds: 5), (
+      timer,
+    ) async {
       if (currentIndex >= routePoints.length) {
         currentIndex = 0;
       }
